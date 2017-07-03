@@ -43323,6 +43323,10 @@ var _utilsMapper = require('../utils/mapper');
 
 var _utilsMapper2 = _interopRequireDefault(_utilsMapper);
 
+var _utilsGetIntersectionMouse = require('../utils/getIntersectionMouse');
+
+var _utilsGetIntersectionMouse2 = _interopRequireDefault(_utilsGetIntersectionMouse);
+
 module.exports = {
 
 	init: function init() {
@@ -43335,6 +43339,7 @@ module.exports = {
 		this.cameraPos = new THREE.Vector3(_utilsConfig2['default'].camera.position.x, _utilsConfig2['default'].camera.position.y, _utilsConfig2['default'].camera.position.z);
 		this.currentCameraPos = new THREE.Vector3(this.cameraPos.x, this.cameraPos.y, this.cameraPos.z);
 		this.plane = null;
+		this.spotLight = null;
 
 		this.scene = new THREE.Scene();
 		this.container = _utilsConfig2['default'].canvas.element;
@@ -43346,6 +43351,8 @@ module.exports = {
 		this.camera.position.z = _utilsConfig2['default'].camera.position.z;
 		this.camera.lookAt(_utilsConfig2['default'].camera.target);
 
+		this.spotLightPosition = { x: 0, y: 0, z: 0 };
+
 		if (_utilsConfig2['default'].axisHelper) {
 			this.axisHelper = new THREE.AxisHelper(5);
 			this.scene.add(this.axisHelper);
@@ -43355,20 +43362,46 @@ module.exports = {
 		this.renderer = new THREE.WebGLRenderer();
 		this.renderer.setClearColor(_utilsConfig2['default'].canvas.color, 1.0);
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.shadowMapEnabled = true;
 
-		console.log(_utilsConfig2['default'].plane);
+		this.spotLight = new THREE.SpotLight(_utilsConfig2['default'].lights.spotLight.color, _utilsConfig2['default'].lights.spotLight.intensity, _utilsConfig2['default'].lights.spotLight.distance, _utilsConfig2['default'].lights.spotLight.angle);
+		this.spotLight.position.set(_utilsConfig2['default'].lights.spotLight.position.x, _utilsConfig2['default'].lights.spotLight.position.y, _utilsConfig2['default'].lights.spotLight.position.z);
+		this.spotLight.castShadow = true;
+		this.spotLight.shadowDarkness = 0.5;
+		this.spotLight.shadowCameraVisible = true;
+		this.scene.add(this.spotLight);
 
-		this.geometry = new THREE.PlaneGeometry(_utilsConfig2['default'].plane.width, _utilsConfig2['default'].plane.height, _utilsConfig2['default'].plane.widthSegment, _utilsConfig2['default'].plane.heightSegment);
+		this.geometry = new THREE.PlaneGeometry(_utilsConfig2['default'].plane.width, _utilsConfig2['default'].plane.height, _utilsConfig2['default'].plane.widthSegments, _utilsConfig2['default'].plane.heightSegments);
 		this.material = new THREE.MeshPhongMaterial({
-			color: 0xffffff,
-			emissive: 0xffffff
+			color: _utilsConfig2['default'].plane.color,
+			ambiant: _utilsConfig2['default'].plane.ambiant,
+			emissive: _utilsConfig2['default'].plane.emissive,
+			emissiveIntensity: _utilsConfig2['default'].plane.emissiveIntensity,
+			specular: _utilsConfig2['default'].plane.specular,
+			shininess: _utilsConfig2['default'].plane.shininess
 		});
+		this.randomize();
 
 		this.plane = new THREE.Mesh(this.geometry, this.material);
 		this.plane.position.x = _utilsConfig2['default'].plane.x;
 		this.plane.position.y = _utilsConfig2['default'].plane.y;
 		this.plane.position.z = _utilsConfig2['default'].plane.z;
+		this.plane.castShadow = true;
+		this.plane.receiveShadow = false;
 		this.scene.add(this.plane);
+
+		this.fakePlaneGeometry = new THREE.PlaneGeometry(_utilsConfig2['default'].plane.width, _utilsConfig2['default'].plane.height, 2, 2);
+		this.fakePlaneMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+		this.fakePlane = new THREE.Mesh(this.fakePlaneGeometry, this.fakePlaneMaterial);
+		this.fakePlane.visible = true;
+
+		this.fakePlaneMaterial.transparent = true;
+		this.fakePlaneMaterial.opacity = 0;
+
+		this.fakePlane.position.x = _utilsConfig2['default'].plane.x;
+		this.fakePlane.position.y = _utilsConfig2['default'].plane.y;
+		this.fakePlane.position.z = 10;
+		this.scene.add(this.fakePlane);
 
 		//// AMBIANT LIGHT
 		this.ambient = new THREE.AmbientLight(_utilsConfig2['default'].lights.ambient.color);
@@ -43394,7 +43427,13 @@ module.exports = {
 
 	onClick: function onClick(event) {},
 
-	onMove: function onMove(event) {},
+	onMove: function onMove(event) {
+		var position = (0, _utilsGetIntersectionMouse2['default'])(event, this.fakePlane, this.camera);
+
+		if (position != void 0) {
+			this.spotLightPosition = position;
+		}
+	},
 
 	onResize: function onResize() {
 		this.canvas.width = this.container.offsetWidth;
@@ -43413,12 +43452,25 @@ module.exports = {
 	render: function render() {
 		var delta = this.clock.getDelta();
 
-		this.renderer.render(this.scene, this.camera);
-	}
+		this.spotLight.position.x += (this.spotLightPosition.x - this.spotLight.position.x) * .1;
+		this.spotLight.position.y += (this.spotLightPosition.y - this.spotLight.position.y) * .1;
+		this.spotLight.position.z += (10 - this.spotLight.position.z) * .1;
 
+		this.renderer.render(this.scene, this.camera);
+	},
+
+	randomize: function randomize() {
+		for (var i = 0; i < this.geometry.vertices.length; i++) {
+			this.geometry.vertices[i].x += Math.random() * 2 - 1;
+			this.geometry.vertices[i].y += Math.random() * 2 - 1;
+			this.geometry.vertices[i].z += Math.random() * 10 - 5;
+		}
+
+		this.geometry.verticesNeedUpdate = true;
+	}
 };
 
-},{"../utils/config":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/config.js","../utils/mapper":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/mapper.js","../utils/raf":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/raf.js","three":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/node_modules/three/build/three.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/initialize.js":[function(require,module,exports){
+},{"../utils/config":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/config.js","../utils/getIntersectionMouse":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/getIntersectionMouse.js","../utils/mapper":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/mapper.js","../utils/raf":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/raf.js","three":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/node_modules/three/build/three.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/initialize.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -43449,15 +43501,27 @@ var config = {
 	},
 
 	camera: {
-		position: new THREE.Vector3(50, 50, 50),
+		position: new THREE.Vector3(0, 0, 100),
 		target: new THREE.Vector3(0, 0, 0)
 	},
 
-	axisHelper: true,
+	axisHelper: false,
 
 	lights: {
 		ambient: {
-			color: 0xffffff
+			color: 0x333333
+		},
+		spotLight: {
+			color: 0xffffff,
+			position: {
+				x: 10,
+				y: 10,
+				z: 3
+			},
+			intensity: 1,
+			distance: 100,
+			angle: Math.PI * 1,
+			castShadow: true
 		}
 	},
 
@@ -43465,10 +43529,18 @@ var config = {
 		x: 0,
 		y: 0,
 		z: 0,
-		width: 20,
-		height: 20,
-		widthSegments: 10,
-		heightSegments: 10
+		width: 100,
+		height: 100,
+		widthSegments: 30,
+		heightSegments: 30,
+		// color: 0xffffff,
+		// emissive: 0x999999,
+		color: 0x2334b6,
+		ambient: 0x8844AA,
+		emissive: 0x000000,
+		emissiveIntensity: 1,
+		specular: 1,
+		shininess: 300
 	},
 
 	radiusSegments: 10,
@@ -43477,6 +43549,35 @@ var config = {
 };
 
 module.exports = config;
+
+},{"three":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/node_modules/three/build/three.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/getIntersectionMouse.js":[function(require,module,exports){
+"use strict";
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj["default"] = obj; return newObj; } }
+
+var _three = require("three");
+
+var THREE = _interopRequireWildcard(_three);
+
+function getIntersectionMouse(event, mesh, camera) {
+
+    // On détecte la position de la souris
+    var vector = new THREE.Vector3(event.clientX / window.innerWidth * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+    vector.unproject(camera);
+    // On balance le raycaster en fonction de la souris
+    var raycaster = new THREE.Raycaster(camera.position, vector.sub(camera.position).normalize());
+    // On regarde les intersections entre le plan locate (invisible et au niveau des cubes) et le raycaster
+    var intersect = raycaster.intersectObject(mesh);
+    // console.log(intersect);
+
+    if (intersect.length >= 1) return {
+        x: intersect[0].point.x,
+        y: intersect[0].point.y,
+        z: intersect[0].point.z
+    };
+}
+
+module.exports = getIntersectionMouse;
 
 },{"three":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/node_modules/three/build/three.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/mapper.js":[function(require,module,exports){
 // https://github.com/tommycor/mapperJS/blob/master/mapper-min.js
