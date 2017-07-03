@@ -4,15 +4,15 @@ var config = {
 	
 	canvas: {
 		element : document.getElementById('container'),
-		color : 0xf4eddf
+		color : 0x000000
 	},
 
 	camera: {
-		position : new THREE.Vector3(0, 0, 50),
+		position : new THREE.Vector3(50, 50, 50),
 		target : new THREE.Vector3(0, 0, 0)
 	},
 
-	axisHelper: false,
+	axisHelper: true,
 	
 	lights: {
 		ambient: {
@@ -20,20 +20,15 @@ var config = {
 		} 
 	},
 
-	cylinders: [
-		{
-			x: 0,
-			y: 0,
-			z: 0,
-			width: 10,
-			height: 10,
-			depth: 10,
-			rotX: 0,
-			rotY: 0,
-			rotZ: 0,
-			inverted: false
-		}
-	],
+	plane: {
+		x: 0,
+		y: 0,
+		z: 0,
+		width: 20,
+		height: 20,
+		widthSegments: 10,
+		heightSegments: 10
+	},
 
 	radiusSegments: 10,
 

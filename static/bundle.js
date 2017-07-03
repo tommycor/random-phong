@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/node_modules/three/build/three.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/node_modules/three/build/three.js":[function(require,module,exports){
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -43300,7 +43300,7 @@
 
 })));
 
-},{}],"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/src/scripts/components/scene.js":[function(require,module,exports){
+},{}],"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/components/scene.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -43335,9 +43335,7 @@ module.exports = {
 		this.cameraPos = new THREE.Vector3(_utilsConfig2['default'].camera.position.x, _utilsConfig2['default'].camera.position.y, _utilsConfig2['default'].camera.position.z);
 		this.currentCameraPos = new THREE.Vector3(this.cameraPos.x, this.cameraPos.y, this.cameraPos.z);
 		this.plane = null;
-		this.composer = null;
 
-		this.cylinders = Array();
 		this.scene = new THREE.Scene();
 		this.container = _utilsConfig2['default'].canvas.element;
 		this.canvas = document.createElement("canvas");
@@ -43358,32 +43356,25 @@ module.exports = {
 		this.renderer.setClearColor(_utilsConfig2['default'].canvas.color, 1.0);
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 
+		console.log(_utilsConfig2['default'].plane);
+
+		this.geometry = new THREE.PlaneGeometry(_utilsConfig2['default'].plane.width, _utilsConfig2['default'].plane.height, _utilsConfig2['default'].plane.widthSegment, _utilsConfig2['default'].plane.heightSegment);
+		this.material = new THREE.MeshPhongMaterial({
+			color: 0xffffff,
+			emissive: 0xffffff
+		});
+
+		this.plane = new THREE.Mesh(this.geometry, this.material);
+		this.plane.position.x = _utilsConfig2['default'].plane.x;
+		this.plane.position.y = _utilsConfig2['default'].plane.y;
+		this.plane.position.z = _utilsConfig2['default'].plane.z;
+		this.scene.add(this.plane);
+
 		//// AMBIANT LIGHT
 		this.ambient = new THREE.AmbientLight(_utilsConfig2['default'].lights.ambient.color);
 
 		//// ADD OBJECTS TO SCENE
 		this.scene.add(this.ambient);
-
-		for (var i = 0; i < _utilsConfig2['default'].cylinders.length; i++) {
-			var cylinderConfig = _utilsConfig2['default'].cylinders[i];
-
-			var cylinderGeometry = new THREE.CylinderGeometry(cylinderConfig.width, cylinderConfig.width, cylinderConfig.height, _utilsConfig2['default'].radiusSegments, _utilsConfig2['default'].heightSegments, false);
-			var cylinderMaterial = new THREE.MeshBasicMaterial({
-				vertexColors: THREE.FaceColors
-			});
-
-			cylinderGeometry.computeFaceNormals();
-
-			for (var j = 0; j < cylinderGeometry.faces.length; j++) {
-				this.setFaceColor(cylinderGeometry.faces[j]);
-			}
-
-			var cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-
-			this.scene.add(cylinder);
-
-			this.cylinders.push(cylinder);
-		}
 
 		//// ADD CANVAS TO DOM
 		this.container.appendChild(this.renderer.domElement);
@@ -43399,20 +43390,11 @@ module.exports = {
 		window.addEventListener('click', this.onClick);
 	},
 
-	setFaceColor: function setFaceColor(face) {
-		console.log('mwellow', face.normal.dot(new THREE.Vector3(0, 0, 1)));
-
-		if (face.normal.dot(new THREE.Vector3(0, 0, 1)) === 0) {
-			face.color = THREE.Vector3(0, 0, 0);
-		}
-	},
+	setFaceColor: function setFaceColor(face) {},
 
 	onClick: function onClick(event) {},
 
-	onMove: function onMove(event) {
-		this.cameraPos.x = event.clientX - this.halfWidth;
-		this.cameraPos.y = event.clientY - this.halfHeight;
-	},
+	onMove: function onMove(event) {},
 
 	onResize: function onResize() {
 		this.canvas.width = this.container.offsetWidth;
@@ -43431,18 +43413,12 @@ module.exports = {
 	render: function render() {
 		var delta = this.clock.getDelta();
 
-		this.currentCameraPos.x += (this.cameraPos.x * .7 - this.currentCameraPos.x) * 0.01;
-		this.currentCameraPos.y += (this.cameraPos.y * .8 - this.currentCameraPos.y) * 0.01;
-
-		this.camera.position.set(this.currentCameraPos.x, this.currentCameraPos.y, this.currentCameraPos.z);
-		this.camera.lookAt(_utilsConfig2['default'].camera.target);
-
 		this.renderer.render(this.scene, this.camera);
 	}
 
 };
 
-},{"../utils/config":"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/src/scripts/utils/config.js","../utils/mapper":"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/src/scripts/utils/mapper.js","../utils/raf":"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/src/scripts/utils/raf.js","three":"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/node_modules/three/build/three.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/src/scripts/initialize.js":[function(require,module,exports){
+},{"../utils/config":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/config.js","../utils/mapper":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/mapper.js","../utils/raf":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/raf.js","three":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/node_modules/three/build/three.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/initialize.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -43456,7 +43432,7 @@ window.onload = function () {
 	_componentsScene2['default'].init();
 };
 
-},{"./components/scene":"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/src/scripts/components/scene.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/src/scripts/utils/config.js":[function(require,module,exports){
+},{"./components/scene":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/components/scene.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/config.js":[function(require,module,exports){
 "use strict";
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj["default"] = obj; return newObj; } }
@@ -43469,15 +43445,15 @@ var config = {
 
 	canvas: {
 		element: document.getElementById('container'),
-		color: 0xf4eddf
+		color: 0x000000
 	},
 
 	camera: {
-		position: new THREE.Vector3(0, 0, 50),
+		position: new THREE.Vector3(50, 50, 50),
 		target: new THREE.Vector3(0, 0, 0)
 	},
 
-	axisHelper: false,
+	axisHelper: true,
 
 	lights: {
 		ambient: {
@@ -43485,18 +43461,15 @@ var config = {
 		}
 	},
 
-	cylinders: [{
+	plane: {
 		x: 0,
 		y: 0,
 		z: 0,
-		width: 10,
-		height: 10,
-		depth: 10,
-		rotX: 0,
-		rotY: 0,
-		rotZ: 0,
-		inverted: false
-	}],
+		width: 20,
+		height: 20,
+		widthSegments: 10,
+		heightSegments: 10
+	},
 
 	radiusSegments: 10,
 
@@ -43505,7 +43478,7 @@ var config = {
 
 module.exports = config;
 
-},{"three":"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/node_modules/three/build/three.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/src/scripts/utils/mapper.js":[function(require,module,exports){
+},{"three":"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/node_modules/three/build/three.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/mapper.js":[function(require,module,exports){
 // https://github.com/tommycor/mapperJS/blob/master/mapper-min.js
 "use strict";
 
@@ -43515,7 +43488,7 @@ function mapper(val, oMin, oMax, nMin, nMax) {
 
 module.exports = mapper;
 
-},{}],"/Users/tommy.cornilleau/Desktop/TEMP/c-exp/src/scripts/utils/raf.js":[function(require,module,exports){
+},{}],"/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/utils/raf.js":[function(require,module,exports){
 'use strict';
 
 function Raf() {
@@ -43564,6 +43537,6 @@ Raf.prototype.control = function (event) {
 
 module.exports = new Raf();
 
-},{}]},{},["/Users/tommy.cornilleau/Desktop/TEMP/c-exp/src/scripts/initialize.js"])
+},{}]},{},["/Users/tommy.cornilleau/Desktop/TEMP/random-phong/src/scripts/initialize.js"])
 
 //# sourceMappingURL=bundle.js.map

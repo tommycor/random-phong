@@ -16,9 +16,7 @@ module.exports = {
 		this.cameraPos		= new THREE.Vector3( config.camera.position.x, config.camera.position.y, config.camera.position.z );
 		this.currentCameraPos = new THREE.Vector3( this.cameraPos.x, this.cameraPos.y, this.cameraPos.z );
 		this.plane   	= null;
-		this.composer 	= null;
 		
-		this.cylinders 	= Array();
 		this.scene 	   	= new THREE.Scene();
 		this.container 	= config.canvas.element;
 		this.canvas 	= document.createElement("canvas");
@@ -39,34 +37,25 @@ module.exports = {
 		this.renderer.setClearColor(config.canvas.color, 1.0);
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 
+		console.log( config.plane );
+
+		this.geometry = new THREE.PlaneGeometry( config.plane.width, config.plane.height,  config.plane.widthSegment, config.plane.heightSegment );
+		this.material = new THREE.MeshPhongMaterial({
+			color: 0xffffff,
+			emissive: 0xffffff
+		});
+
+		this.plane = new THREE.Mesh( this.geometry, this.material );
+		this.plane.position.x = config.plane.x;
+		this.plane.position.y = config.plane.y;
+		this.plane.position.z = config.plane.z;
+		this.scene.add( this.plane );
+
 		//// AMBIANT LIGHT
 		this.ambient = new THREE.AmbientLight( config.lights.ambient.color );
 
 		//// ADD OBJECTS TO SCENE
 		this.scene.add( this.ambient );
-
-		for( let i = 0 ; i < config.cylinders.length ; i++ ) {
-			let cylinderConfig = config.cylinders[i];
-
-			let cylinderGeometry = new THREE.CylinderGeometry( cylinderConfig.width, cylinderConfig.width, cylinderConfig.height, config.radiusSegments, config.heightSegments, false );
-			let cylinderMaterial = new THREE.MeshBasicMaterial({
-				vertexColors: THREE.FaceColors
-			});
-
-			cylinderGeometry.computeFaceNormals();
-
-			for( let j = 0 ; j < cylinderGeometry.faces.length ; j++ ) {
-				this.setFaceColor( cylinderGeometry.faces[j] );
-			}
-
-			let cylinder = new THREE.Mesh( cylinderGeometry, cylinderMaterial );
-
-			this.scene.add( cylinder );
-
-			this.cylinders.push( cylinder );
-
-		}
-
 
 		//// ADD CANVAS TO DOM
 		this.container.appendChild( this.renderer.domElement );
@@ -83,19 +72,12 @@ module.exports = {
 	},
 
 	setFaceColor: function( face ) {
-		console.log('mwellow', face.normal.dot( new THREE.Vector3( 0, 0, 1 ) ));
-
-		if( face.normal.dot( new THREE.Vector3( 0, 0, 1 ) ) === 0 ) {
-			face.color = THREE.Vector3( 0, 0, 0 );
-		}
 	},
 
 	onClick: function( event ) {
 	},
 
 	onMove: function( event ) {
-		this.cameraPos.x = event.clientX - this.halfWidth;
-		this.cameraPos.y = event.clientY - this.halfHeight;
 	},
 
 	onResize: function() {
@@ -114,12 +96,6 @@ module.exports = {
 
 	render: function() {
 		let delta = this.clock.getDelta();
-
-		this.currentCameraPos.x += ( ( this.cameraPos.x * .7) - this.currentCameraPos.x ) * 0.01;
-		this.currentCameraPos.y += ( ( this.cameraPos.y * .8) - this.currentCameraPos.y ) * 0.01;
-
-		this.camera.position.set( this.currentCameraPos.x, this.currentCameraPos.y, this.currentCameraPos.z );
-		this.camera.lookAt(config.camera.target);
 
 		this.renderer.render(this.scene, this.camera);
 	}
