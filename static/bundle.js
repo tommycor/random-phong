@@ -43387,7 +43387,7 @@ module.exports = {
 		this.plane.position.y = _utilsConfig2['default'].plane.y;
 		this.plane.position.z = _utilsConfig2['default'].plane.z;
 		this.plane.castShadow = true;
-		this.plane.receiveShadow = false;
+		this.plane.receiveShadow = true;
 		this.scene.add(this.plane);
 
 		this.fakePlaneGeometry = new THREE.PlaneGeometry(_utilsConfig2['default'].plane.width, _utilsConfig2['default'].plane.height, 2, 2);
@@ -43463,7 +43463,7 @@ module.exports = {
 		for (var i = 0; i < this.geometry.vertices.length; i++) {
 			this.geometry.vertices[i].x += Math.random() * 2 - 1;
 			this.geometry.vertices[i].y += Math.random() * 2 - 1;
-			this.geometry.vertices[i].z += Math.random() * 10 - 5;
+			this.geometry.vertices[i].z += Math.random() * 12 - 6;
 		}
 
 		this.geometry.verticesNeedUpdate = true;
@@ -43518,8 +43518,8 @@ var config = {
 				y: 10,
 				z: 3
 			},
-			intensity: 1,
-			distance: 100,
+			intensity: 2,
+			distance: 200,
 			angle: Math.PI * 1,
 			castShadow: true
 		}
@@ -43529,18 +43529,18 @@ var config = {
 		x: 0,
 		y: 0,
 		z: 0,
-		width: 100,
+		width: 200,
 		height: 100,
-		widthSegments: 30,
+		widthSegments: 60,
 		heightSegments: 30,
 		// color: 0xffffff,
 		// emissive: 0x999999,
-		color: 0x2334b6,
-		ambient: 0x8844AA,
+		color: 0x464a6c,
+		ambient: 0x2b2f4c,
 		emissive: 0x000000,
 		emissiveIntensity: 1,
-		specular: 1,
-		shininess: 300
+		specular: 0x333333,
+		shininess: 5
 	},
 
 	radiusSegments: 10,

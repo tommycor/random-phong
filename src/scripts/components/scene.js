@@ -64,7 +64,7 @@ module.exports = {
 		this.plane.position.y = config.plane.y;
 		this.plane.position.z = config.plane.z;
 		this.plane.castShadow = true;
-		this.plane.receiveShadow = false;
+		this.plane.receiveShadow = true;
 		this.scene.add( this.plane );
 
 		this.fakePlaneGeometry 		= new THREE.PlaneGeometry( config.plane.width, config.plane.height,  2, 2 );
@@ -142,7 +142,7 @@ module.exports = {
 		for( var i = 0 ; i < this.geometry.vertices.length ; i++ ) {
 			this.geometry.vertices[i].x += Math.random() * 2 - 1;
 			this.geometry.vertices[i].y += Math.random() * 2 - 1;
-			this.geometry.vertices[i].z += Math.random() * 10 - 5;
+			this.geometry.vertices[i].z += Math.random() * 12 - 6;
 		}
 
 		this.geometry.verticesNeedUpdate = true;
