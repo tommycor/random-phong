@@ -25,9 +25,9 @@ var config = {
 				y: 10,
 				z: 3
 			},
-			intensity: 2,
+			intensity: 5,
 			distance: 200,
-			angle: Math.PI * 1,
+			angle: Math.PI * .3,
 			castShadow: true
 		}
 	},
@@ -38,8 +38,8 @@ var config = {
 		z: 0,
 		width: 200,
 		height: 100,
-		widthSegments: 60,
-		heightSegments: 30,
+		widthSegments: 45,
+		heightSegments: 28,
 		// color: 0xffffff,
 		// emissive: 0x999999,
 		color: 0x464a6c,

@@ -3,6 +3,7 @@ import config 				from '../utils/config';
 import raf 					from '../utils/raf';
 import mapper 				from '../utils/mapper';
 import getIntersectionMouse	from '../utils/getIntersectionMouse';
+import SimplexNoise 		from 'simplex-noise';
 
 module.exports = {
 
@@ -17,10 +18,12 @@ module.exports = {
 		this.currentCameraPos = new THREE.Vector3( this.cameraPos.x, this.cameraPos.y, this.cameraPos.z );
 		this.plane   	= null;
 		this.spotLight 	= null;
+		this.pNoise 	= new SimplexNoise();
 		
 		this.scene 	   	= new THREE.Scene();
 		this.container 	= config.canvas.element;
 		this.canvas 	= document.createElement("canvas");
+		this.defaultZvalue 	= new Array();
 
 		this.camera 		   = new THREE.PerspectiveCamera(45, this.ratio, 15, 3000);
 		this.camera.position.x = config.camera.position.x;
@@ -36,17 +39,27 @@ module.exports = {
 		}
 
 		//// RENDERER
-		this.renderer = new THREE.WebGLRenderer();
+		this.renderer = new THREE.WebGLRenderer({ antialias: true });
 		this.renderer.setClearColor(config.canvas.color, 1.0);
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		this.renderer.shadowMapEnabled = true;
+		this.renderer.shadowMapSoft = true;
 
 		this.spotLight = new THREE.SpotLight( config.lights.spotLight.color, config.lights.spotLight.intensity, config.lights.spotLight.distance, config.lights.spotLight.angle );
 		this.spotLight.position.set( config.lights.spotLight.position.x, config.lights.spotLight.position.y, config.lights.spotLight.position.z );
 		this.spotLight.castShadow = true;
-		this.spotLight.shadowDarkness = 0.5;
+		this.spotLight.penumbra = .5;
 		this.spotLight.shadowCameraVisible = true;
+		this.spotLight.shadowMapWidth = 4096;
+		this.spotLight.shadowMapHeight = 4096;
+		this.spotLight.shadow.bias = - 0.0001;
+		// this.spotLight.shadow.bias = - 0.0005;
 		this.scene.add( this.spotLight );
+
+		this.targetLight = new THREE.Object3D();
+		this.targetLight.position.set( 0., 0., 10 );
+		this.scene.add( this.targetLight );
+		this.spotLight.target = this.targetLight;
 
 		this.geometry = new THREE.PlaneGeometry( config.plane.width, config.plane.height,  config.plane.widthSegments, config.plane.heightSegments );
 		this.material = new THREE.MeshPhongMaterial({
@@ -62,7 +75,7 @@ module.exports = {
 		this.plane = new THREE.Mesh( this.geometry, this.material );
 		this.plane.position.x = config.plane.x;
 		this.plane.position.y = config.plane.y;
-		this.plane.position.z = config.plane.z;
+		this.plane.position.z = 0;
 		this.plane.castShadow = true;
 		this.plane.receiveShadow = true;
 		this.scene.add( this.plane );
@@ -129,11 +142,16 @@ module.exports = {
 	},
 
 	render: function() {
-		let delta = this.clock.getDelta();
+		let time = this.clock.getElapsedTime() * .5;
 
 		this.spotLight.position.x += ( this.spotLightPosition.x - this.spotLight.position.x ) * .1;
 		this.spotLight.position.y += ( this.spotLightPosition.y - this.spotLight.position.y ) * .1;
-		this.spotLight.position.z += ( 10 - this.spotLight.position.z ) * .1;
+		this.spotLight.position.z = 15;
+
+		for( var i = 0 ; i < this.geometry.vertices.length ; i++ ) {
+			this.geometry.vertices[i].z = this.defaultZvalue[i]  + ( -.5 + this.pNoise.noise2D( this.defaultZvalue[i], time) ) * 2;
+		}
+		this.geometry.verticesNeedUpdate = true;
 
 		this.renderer.render(this.scene, this.camera);
 	},
@@ -143,6 +161,8 @@ module.exports = {
 			this.geometry.vertices[i].x += Math.random() * 2 - 1;
 			this.geometry.vertices[i].y += Math.random() * 2 - 1;
 			this.geometry.vertices[i].z += Math.random() * 12 - 6;
+
+			this.defaultZvalue.push( this.geometry.vertices[i].z );
 		}
 
 		this.geometry.verticesNeedUpdate = true;
